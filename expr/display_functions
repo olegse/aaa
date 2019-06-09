@@ -1,0 +1,2 @@
+# Display functions declared in the file
+^\s*function

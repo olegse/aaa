@@ -1,0 +1,15 @@
+
+ Global variables 
+
+ 	
+ Future improvements:
+
+ 	Display random words according to starting letter by learning the words before.
+	Maybe one day pack your solution for GETOPTS to be an argument string, so all the parsing is internal by including a library.
+	Write script to re-align a dictionary file.
+	Print word translation instead of error when trying to store duplicate word.
+	Accept -d/--delete to delete an entry or -r/--rewrite to rewrite it on place.
+
+ Ideas:
+ 	
+	Display all the sourced files in a list.

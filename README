@@ -1,0 +1,11 @@
+
+ Game mode.
+
+ 	Game mode is triggered with the -g/--game option optionally accepting a number of the games to be played.
+
+	play() 
+	 cursor is set to off (create a function)
+	 GAME_MAX		# 4
+	 RAND_LINE_MAX # 4
+
+	f
