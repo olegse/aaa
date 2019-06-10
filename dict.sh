@@ -1,21 +1,4 @@
 #!/bin/bash
-# 
-# Learning program.
-#
-# Dictionary file ($dict) is one that read and examined depends on the options specified.
-# Program expects word on input to search dictionary file for. All the lines matching ^word will be displayed.
-# Translation comma-separated list can be specified following the word. Word and its translatoins will be learned.
-#
-# Game mode can be issued using -q/--game option. Optional games count can be specified to control number of games.
-#
-# Dictionary file can be changed temporary or permanently using -d/--dictionary option. If option argument is ommitted the
-# current dictionary file name is displayed. Filename if followed will be used either to search word translation or to be
-# set to a default one if word is not specified.
-#
-# Global Variables:
-#
-#   OPTARG  - set to the option argument after call to get_arg()
-#
 
 source init.sh
 
@@ -43,7 +26,7 @@ while [ "$1" ]; do
 	
 		-g|--game)
 								game=1 
-								get_arg GAME_MAX "$1" $2 
+								get_arg GAME_MAX ${@:1:2} 1
 			;;
 	
 		-d|--dictionary)
