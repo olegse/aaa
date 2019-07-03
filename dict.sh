@@ -24,23 +24,27 @@ while [ "$1" ]; do
 	
 			;;
 	
-		-g|--game)
+		-g|--game*)
 								game=1 
-								get_arg GAME_MAX ${@:1:2} 1
+                # always pass as an option name
+                # get arg game ${@:1:2} FLAG
+                get_arg GAME_MAX ${@:1:2} 1
 			;;
 	
-		-d|--dictionary)
-								get_arg arg "$1" $2
-
-								if [ -n "$arg" ]
-								then
-									dict=$arg			
-									rw=1
-								else	# argument was not passed
-								#  only print current dictionary file used
-									echo "Dictionary file:  $dict"      # see lib.sh for the default value
-									exit 0
-								fi
+		-d|--dict|\
+    --dictionary-file)
+        
+        if [[ -z "$2" -o $2 =~ ^- ]] 
+        then 
+				  # Only print current dictionary file used
+          # file_used   - report dictionary file
+				  echo "Dictionary file used:  $dict"
+				  exit 0
+        else
+          echo "Dictionary file set to '$2'"
+					dict=$2     # set new dictionary value
+					rw=1        # set rewrite flag
+         fi
 		  ;;
 	
 		-*) echo "invalid option: \`$1'" >&2

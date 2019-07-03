@@ -3,7 +3,6 @@
 declare -a {questions,translations,rand_l}
 
 source arrays.sh
-source opt.sh
 source vt100.sh
 source game.sh
 
