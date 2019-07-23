@@ -1,5 +1,11 @@
 #!/bin/bash
 #
+# Serious hacking follows...
+#
+# Functions:
+#
+# flen()    : FLEN  
+#
 
 # Sets FLEN to the file length.
 #

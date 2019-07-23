@@ -7,10 +7,14 @@ function usage() {
 	echo "Print word translation. Word translations can be specified in comma-separated list."
 	echo ""
 	echo "Options:"
-	echo "  -q, --game [GAMES]       run in a game mode number of GAMES"
-	echo "  -d, --dictionary [FILE]   set or print current dictionary file; if word is specified "
+	echo "  -x[N]                     play N games"
+	echo "  -d[FILE]   set or print current dictionary file; if word is specified "
 	echo "                            dictionary file is used as temporary otherwise used permanently"
+  echo "  -e                        print script environment"
+  echo "  -l                        list available dictionaries"
 	echo "  -h                        print usage and exit"
+  echo ""
+  echo "First option found takes precedence."
 	exit 0
 }
 
@@ -24,27 +28,45 @@ while [ "$1" ]; do
 	
 			;;
 	
-		-g|--game*)
-								game=1 
-                # always pass as an option name
-                # get arg game ${@:1:2} FLAG
-                get_arg GAME_MAX ${@:1:2} 1
+		-x*)
+         option=-x
+         games_count=${1##$option}
+         if [ -z "$games_count" ]
+         then
+           if [[ -z "$2" || $2 =~ ^- ]]
+           then
+					   games_count=$GAMES_DEF
+           else
+             games_count=$2
+             shift    # shift option argument
+           fi
+         fi
+         if ! [ $games_count =~ ^[[:digit:]]*$ ]
+         then
+           echo "'$games_count' is a wrong value for the games" 1>&2
+         fi
 			;;
 	
-		-d|--dict|\
-    --dictionary-file)
+    # Set or display dictionary file
+		-d*)
         
-        if [[ -z "$2" -o $2 =~ ^- ]] 
-        then 
-				  # Only print current dictionary file used
-          # file_used   - report dictionary file
-				  echo "Dictionary file used:  $dict"
-				  exit 0
+        rewrite_dictionary_file=1
+        option=-d
+        if [ -z "${1##$option}" ]
+        then # argument is not part of the option
+          if [[ -z "$2" || $2 =~ ^- ]] # and is not following the option
+          then 
+					  # Only print current dictionary file used
+	          # file_used   - report dictionary file
+					  echo "Dictionary file in use:  $DICT_FILE"
+					  exit 0
+	        else # argument follows the option
+						DICT_FILE=$2     # set new dictionary value
+	        fi
         else
-          echo "Dictionary file set to '$2'"
-					dict=$2     # set new dictionary value
-					rw=1        # set rewrite flag
-         fi
+          DICT_FILE=${1##$option} 
+        fi
+        shift
 		  ;;
 	
 		-*) echo "invalid option: \`$1'" >&2
@@ -57,83 +79,79 @@ while [ "$1" ]; do
 
 	esac
 
-	shift $count			# $word is shifted
-	#test  $count -eq 1 || count=1		, why?
-	if [ "$word" ]
-	 then break			# stop parsing on the word definition
+	shift   # be ready to process next element
+	if [ "$word" ]   # stop parsing on the word definition
+	 then break			 # now the "$*" is the translations that follow ($word was shifted)
 	fi
 done
 
-if ! [[ "$word" || $game  ]]  # no word specifie and no game will run
-then
-	if [ $rw ]			# dictionary file name was specified, dictionary file permanently
-	then
-		if [ ! -e "$LIBRARY/$dict" ]
+# Apply actions depending on the option
+case "$option" in
+  -d)  # change dictionary file name in 
+		  # DIR=$HOME/dict
+		  # LIBRARY=$DIR/library
+		  # DICT_FILE=en
+		  # DICT_FILE_PATH=$LIBRARY/$DICT_FILE
+		  # LIB=$DIR/lib/lib.sh   - default variables file
+			
+			  # check for existence of the new dictionary file before rewriting
+				if [ ! -e "$LIBRARY/$DICT_FILE" ]
+				then
+					echo "Can not find file '$DICT_FILE' in '$LIBRARY'"
+					exit 1
+				fi
+			  
+			  # Edit lib.sh
+			  sed -i "/\(DICT_FILE=\).*/ s//\1$DICT_FILE/" $LIB
+			  exit 0
+  ;;
+
+  -x) # Quest mode. We allow to change dictionary file before.
+	    play
+  ;;
+
+  *)  # Display or store word translation
+		if [ -z "$*" ] # no translations passed; display all the words starting from ^word
 		then
-			echo "Can not find file '$dict'"
-			exit 1
-		fi
+			grep "^$word" $DICT_FILE_PATH
+		
+		else
 
-		# The expression:
-		#		consider slash if dict file is a relative path
-		#if sed -n "/dict=/ s/\(=[^ \t\/]*\/\?\)\w\+/\1$dict/p" $LIB
-		if sed -i "/dict=/ s/\(=[^ \t\/]*\/\?\)\w\+/\1$dict/" $LIB
-		then
-			echo "Dictionary file is set to: $dict"
-			exit 0
-		fi
-	fi
-fi
-
-
-# Quest mode. We allow to change dictionary file before.
-if [ $game ] 
-then
-	play
-fi
-
-if [ -z "$*" ] 
-# no translations passed; display all the words starting from ^word
-then
-	grep "^$word" $dict
-
-else
-	# Continue to store translations...
-	
-	# Die on duplicate
-	#
-	if grep -qw "$word" $dict
-	then
-		echo "\`$word' already exists" >&2
-		exit 1
-	fi
-	
-	# handle space indent
-
-	let "spaces = (($INDENT - ${#word}))"
-
-	if [ $spaces -eq 1 ]			
-	then 			
+		  # Continue to store translations...
+		
+		  # Die on duplicate; maybe rewrite translations later?
+		  #
+	  	if grep -qw "$word" $DICT_FILE_PATH
+	  	then
+		  	echo "\`$word' already exists" >&2
+		  	exit 1
+		  fi
+ 	
+  	  # handle space indent
+	    let "spaces = (($INDENT - ${#word}))"
+  	  if [ $spaces -eq 1 ]			
+  	  then 			
 						
-		$((spaces++))	# lets say word had length of 29, so only one space will be printed
-									# need to add one more space to be able to distinguish word with translation	fi		
-	fi
+	  	  $((spaces++))	
+        # lets say word had length of 29, so only one space will be printed
+			  # need to add one more space to be able to distinguish word with translation,
+        # and this is why?
+	    fi
 
-	while let "((spaces--))"	# when spaces reaches 0, let returns false
-	do
-	 	word="$word"' '	# append space each iteration
-	done
+	    while let "((spaces--))"	# when spaces reaches 0, let returns false
+  	  do
+	   	  word="$word"' '	# append space each iteration
+  	  done
 	
-	# translations after space indent
-
-	word="$word`echo $* | sed 's/\s*,/,/'`"		# delete any preceding whitespaces before ,
-	
-	
-	# write dictionary file
-
-	echo "$word" >> $dict
-	
-
-	# sort file to TMP and restore to dictionary	
-	sort $dict > $TMP && mv $TMP $dict
-fi
+	    # translations after space indent
+	    word="$word`echo $* | sed 's/\s*,/,/g'`"		# delete any preceding whitespaces before ,
+	  
+	  
+	    # write dictionary file
+	    echo "$word" >> $DICT_FILE_PATH
+	  
+	    # sort file to TMP and restore to dictionary	
+	    sort $DICT_FILE_PATH > $TMP && mv $TMP $DICT_FILE_PATH
+    fi
+  ;;
+esac
