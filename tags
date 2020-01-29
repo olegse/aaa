@@ -3,10 +3,14 @@
 !_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
-!_TAG_PROGRAM_VERSION	5.8	//
-flen	game.sh	/^function flen(){$/;"	f
-play	game.sh	/^function play() {$/;"	f
-quest	game.sh	/^function quest()$/;"	f
-rand	game.sh	/^function rand(){$/;"	f
-rand_line	game.sh	/^function rand_line()$/;"	f
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+arr_d	lib/arrays.sh	/^function arr_d() {$/;"	f
+clear_screen	lib/vt100.sh	/^function clear_screen()$/;"	f
+dup	lib/arrays.sh	/^function dup() {$/;"	f
+flen	lib/game.sh	/^function flen(){			# 'a$/;"	f
+get_arg	opt.sh	/^function get_arg() {$/;"	f
+play	lib/game.sh	/^function play() {$/;"	f
+quest	lib/game.sh	/^function quest()$/;"	f
+rand	lib/game.sh	/^function rand(){$/;"	f
+rand_line	lib/game.sh	/^function rand_line()		# 'r$/;"	f
 usage	dict.sh	/^function usage() {$/;"	f

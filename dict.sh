@@ -9,8 +9,6 @@ function usage() {
 	echo "Options:"
 	echo "  -x [N]                     play N games"
 	echo "  -d [FILE]                  set or print current dictionary file"
-  echo "                             if word is specified dictionary file is used as temporary,"
-  echo "                             otherwise used permanently"
   echo "  -e                         print script environment"
   echo "  -l                         list available dictionaries"
 	echo "  -h                         print usage and exit"
@@ -31,20 +29,20 @@ while [ "$1" ]; do
 	
 		-x*)
          option=-x
-         games_count=${1##$option}
-         if [ -z "$games_count" ]
+         games_count=${1##$option}  # -oARG
+         if [ -z "$games_count" ]   # -o [ARG]
          then
-           if [[ -z "$2" || $2 =~ ^- ]]
+           if [[ -z "$2" || $2 =~ ^- ]] # -o ''
            then
-					   games_count=$GAMES_DEF
+					   games_count=$GAMES_DEF   # 4
            else
-             games_count=$2
+             games_count=$2         # -o ARG
              shift    # shift option argument
            fi
          fi
          if ! [ $games_count =~ ^[[:digit:]]*$ ]
          then
-           echo "'$games_count' is a wrong value for the games" 1>&2
+           echo "'$games_count' requires numeric value" 1>&2
          fi
 			;;
 	
@@ -53,19 +51,19 @@ while [ "$1" ]; do
         
         rewrite_dictionary_file=1
         option=-d
-        if [ -z "${1##$option}" ]
+        if [ -z "${1##$option}" ] # -o ARG or -o ''
         then # argument is not part of the option
           if [[ -z "$2" || $2 =~ ^- ]] # and is not following the option
           then 
 					  # Only print current dictionary file used
 	          # file_used   - report dictionary file
-					  echo "Dictionary file in use:  $DICT_FILE"
+					  echo "Dictionary file in use:  $DICT_FILE_NAME"
 					  exit 0
 	        else # argument follows the option
-						DICT_FILE=$2     # set new dictionary value
+						DICT_FILE_NAME=$2     # set new dictionary value
 	        fi
-        else
-          DICT_FILE=${1##$option} 
+        else  # -oARG
+          DICT_FILE_NAME=${1##$option} 
         fi
         shift
 		  ;;
@@ -88,23 +86,24 @@ done
 
 # Apply actions depending on the option
 case "$option" in
-  -d)  # change dictionary file name in 
+  -d) # change dictionary file name in 
 		  # DIR=$HOME/dict
 		  # LIBRARY=$DIR/library
-		  # DICT_FILE=en
-		  # DICT_FILE_PATH=$LIBRARY/$DICT_FILE
+		  # DICT_FILE_NAME=en
+		  # DICT_FILE=$LIBRARY/$DICT_FILE_NAME
 		  # LIB=$DIR/lib/lib.sh   - default variables file
 			
-			  # check for existence of the new dictionary file before rewriting
-				if [ ! -e "$LIBRARY/$DICT_FILE" ]
-				then
-					echo "Can not find file '$DICT_FILE' in '$LIBRARY'"
-					exit 1
-				fi
+			# check for existence of the new dictionary file before rewriting
+			if [ ! -e "$LIBRARY/$DICT_FILE_NAME" ]
+			then
+				echo "Can not find file '$DICT_FILE_NAME' in '$LIBRARY'"
+				exit 1
+			fi
 			  
-			  # Edit lib.sh
-			  sed -i "/\(DICT_FILE=\).*/ s//\1$DICT_FILE/" $LIB
-			  exit 0
+		  # Edit lib.sh
+		  sed -i "/\(DICT_FILE_NAME=\).*/ s//\1$DICT_FILE_NAME/" $LIB
+		  exit 0
+      # [!] no need to exit here; just allow change and then play or translate with it
   ;;
 
   -x) # Quest mode. We allow to change dictionary file before.
@@ -114,7 +113,7 @@ case "$option" in
   *)  # Display or store word translation
 		if [ -z "$*" ] # no translations passed; display all the words starting from ^word
 		then
-			grep "^$word" $DICT_FILE_PATH
+			grep "^$word" $DICT_FILE
 		
 		else
 
@@ -122,7 +121,7 @@ case "$option" in
 		
 		  # Die on duplicate; maybe rewrite translations later?
 		  #
-	  	if grep -qw "$word" $DICT_FILE_PATH
+	  	if grep -qw "$word" $DICT_FILE
 	  	then
 		  	echo "\`$word' already exists" >&2
 		  	exit 1
@@ -149,10 +148,10 @@ case "$option" in
 	  
 	  
 	    # write dictionary file
-	    echo "$word" >> $DICT_FILE_PATH
+	    echo "$word" >> $DICT_FILE
 	  
 	    # sort file to TMP and restore to dictionary	
-	    sort $DICT_FILE_PATH > $TMP && mv $TMP $DICT_FILE_PATH
+	    sort $DICT_FILE > $TMP && mv $TMP $DICT_FILE
     fi
   ;;
 esac

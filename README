@@ -3,6 +3,8 @@
  all the files located in lib. init.sh execution will end up in the base dict directory to keep consequent calls related
  to the base directory.
 
+ Sourced scripts are:
+
 	arrays.sh
 	clear_screen.sh
 	game.sh
@@ -11,16 +13,22 @@
 	vt100.sh
 
  	get_arg()
- Game mode.
 
- 	Game mode is triggered with the -g/--game option optionally accepting a number of the games to be played.
 
+
+ Game
+
+ Game mode is triggered with the -x option optionally accepting a number of the games to be played.
+
+ DICT_FILE tracks full path to the dictionary file in use.
+ 
+ Find file length. flen()
 	play() 
 	 cursor is set to off (create a function)
+ 
 	 GAME_MAX		# 4
 	 RAND_LINE_MAX # 4
 
-	f
 # 
 # Learning program.
 #

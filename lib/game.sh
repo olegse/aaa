@@ -13,13 +13,14 @@
 #
 
 
-# Set FLEN variable to the line count within file.Shall we
-# pass the file name or examine $dict strictly?
+# Set FLEN variable to the line count within file.
+# Shall we pass the file name or examine $dict strictly?
+# - well.. to make it more general - yes
 function flen(){			# 'a
 
 	test $# -eq 1 || { echo "error in flen()"; exit 1; }
 
-	FLEN=`wc -l $1 | awk '{print $1}'`
+	FLEN=`wc --lines $1 | awk '{print $1}'`
 	# DEBUG
 	#echo "[DEBUG] FLEN: $FLEN"; exit 5
 }
@@ -31,34 +32,36 @@ function flen(){			# 'a
 # Generate number in range of 0 - 32767. RAND is set to the generated number.
 # LOW_LIMIT is 0 defaults to 0
 #
-# 
-function rand(){			# 'r
-		LIMIT=$1
-		LOW_LIMIT=$2
-		RAND_LIMIT=${#LIMIT} 		# number of digits in $LIMIT
+# rand $FLEN 1
+function rand(){
+  LIMIT=${#1}    # here LIMIT is the number of digits to be generated and not overlap
 
-		test $LOW_LIMIT || LOW_LIMIT=0	# if LOW_LIMIT was not set, set it to 0
-		while [ 1 ]
-		do
-			RAND=$RANDOM
-	
-			if [ ${#RAND} -gt $RAND_LIMIT ]; then
-			# Get only $RAND_LIMIT digits
-				RAND=${RAND:((${#RAND}-$RAND_LIMIT))}			# only digits starting from the index of RAND-RAND_LIMIT
-			fi
-	
-			# Remove leading 0-es 
-			if [ $RAND_LIMIT -gt 1 ] 
-			then 
-				RAND=${RAND/+(0)}	
-			fi
+  MAX_LINE=$1      # the highest line number in a file (for readability changed to MAX_LINE)
+  MIX_LINE=${2:1} # the lowest line number in a file (default: 1)
 
-			if [[ $RAND -ge $LOW_LIMIT && $RAND -le $LIMIT ]]		
-			then 
-			 	break
-			fi
-	
-		done
+  # DEBUG
+  echo "[DEBUG] in rand()"
+  echo "[DEBUG] LIMIT: $LIMIT"
+  echo "[DEBUG] MIN_LINE: $MIN_LINE"
+  echo "[DEBUG] MAX_LINE: $MAX_LINE"
+
+  while [ 1 ]; do
+    RAND=$RANDOM
+    # DEBUG
+    echo "[DEBUG] RAND: $RAND"
+    RAND=${RAND/+(0)}	  # remove leading zeroe's
+    # DEBUG
+    echo "[DEBUG] RAND: $RAND"
+    RAND=${RAND:0:$LIMIT}			# only digits starting from the index of RAND-RAND_LIMIT
+    # DEBUG
+    echo "[DEBUG] RAND: $RAND"
+
+    if [[ $RAND -ge $MIN_LINE && $RAND -le $MaX_LINE ]]		
+    then 
+      break
+    fi
+
+  done
 }
 
 # Generate four random numbers and store them in the rand_l[] 
@@ -70,7 +73,9 @@ function rand_line()		# 'r
 
 	local i			# declare local i
 
-	# Poplulate rand_l
+	# Populate rand_l
+  #
+  # RAND_LINE_MAX is the lines to offer in a question
 	for((i=0; $i < $RAND_LINE_MAX; i++))
 	do 
 		while [ 1 ] 
@@ -104,8 +109,8 @@ function rand_line()		# 'r
 function quest()
 {
 
-	declare -a {questions,translations,rand_l}			# make names indexed array (-a)
-	declare -g rand_line # get four random line numbers; rand_line is a global variable (-g)
+	declare -a {questions,translations,rand_l}			# indexed arrays (-a)
+	declare -g rand_line # store random line numbers; global array (-g)
 	
 	rand_line		# generate random line number, set to $RAND
 	for line in ${rand_l[@]}		# 
@@ -145,19 +150,22 @@ function quest()
 #
 # Start game.
 #
+# DICT_FILE - dictionary file
+# GAMES - number of games
 function play() {
 
-	setterm -cursor off 		# hide cursor 
+  set_cursor off    # hide cursor 
 	
-	# maximum examined line number can not go beyond the last line in the file,
-	# reset it to file lenght if needed
-	flen $dict
+	# Maximum examined line number can not go beyond the last line in the file,
+	# reset it to file lenght if needed. 
+	flen $DICT_FILE     #  FLEN is returned
 
-	# create a function for example set_rand_line_max
-	if [ $FLEN -lt $RAND_LINE_MAX ]		# RAND_LINE is the number of the linese to be examined translation query
-	then		
-		RAND_LINE_MAX=$FLEN			# set it to the maximum line numbers in the file if less than 4 (default of RAND_LINE_MAX)
-	fi
+	# Create a function for example set_rand_line_max
+  # RAND_LINE_MAX is the number of the lines to be examined/offered by
+  # the translation query                                 	
+
+  # set it to the maximum line numbers in the file if less than 4 (default of RAND_LINE_MAX) fi
+  [ $FLEN -lt $RAND_LINE_MAX ] && RAND_LINE_MAX=$FLEN			
 
 	# DEBUG
 	#echo "in play(): "
@@ -168,10 +176,10 @@ function play() {
 	# clear the screen 
 	clear_screen
 
-	for((i=0; $i < $GAME_MAX; i++))
+	for((i=0; $i < $GAMES; i++))
 	do
 		quest
 	done
-	setterm -cursor on
+  set_cursor on
 	exit
 }
