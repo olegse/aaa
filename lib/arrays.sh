@@ -27,6 +27,7 @@ function dup() {
 			break
 		fi
 	done
+ # test -n "$debug" && arr_d $array
 }
 
 

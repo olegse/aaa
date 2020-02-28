@@ -14,9 +14,7 @@
 
 
 # Set FLEN variable to the line count within file.
-# Shall we pass the file name or examine $dict strictly?
-# - well.. to make it more general - yes
-function flen(){			# 'a
+function flen(){			# 'b
 
 	test $# -eq 1 || { echo "error in flen()"; exit 1; }
 
@@ -30,14 +28,14 @@ function flen(){			# 'a
 #	rand LIMIT [LOW_LIMIT]
 #
 # Generate number in range of 0 - 32767. RAND is set to the generated number.
-# LOW_LIMIT is 0 defaults to 0
+# LOW_LIMIT if not specified, defaults to 0
 #
 # rand $FLEN 1
 function rand(){
   LIMIT=${#1}    # here LIMIT is the number of digits to be generated and not overlap
 
   MAX_LINE=$1      # the highest line number in a file (for readability changed to MAX_LINE)
-  MIX_LINE=${2:1} # the lowest line number in a file (default: 1)
+  MIN_LINE=${2:-1} # the lowest line number in a file (default 1 if not passed)
 
   # DEBUG
   echo "[DEBUG] in rand()"
@@ -46,17 +44,9 @@ function rand(){
   echo "[DEBUG] MAX_LINE: $MAX_LINE"
 
   while [ 1 ]; do
-    RAND=$RANDOM
-    # DEBUG
-    echo "[DEBUG] RAND: $RAND"
-    RAND=${RAND/+(0)}	  # remove leading zeroe's
-    # DEBUG
-    echo "[DEBUG] RAND: $RAND"
-    RAND=${RAND:0:$LIMIT}			# only digits starting from the index of RAND-RAND_LIMIT
-    # DEBUG
-    echo "[DEBUG] RAND: $RAND"
-
-    if [[ $RAND -ge $MIN_LINE && $RAND -le $MaX_LINE ]]		
+    RAND=$(( RANDOM % (10**LIMIT) ))
+    #echo "RAND: $RAND"
+    if [ $RAND -ge $MIN_LINE -a $RAND -le $MAX_LINE ]
     then 
       break
     fi
@@ -86,20 +76,25 @@ function rand_line()		# 'r
 		done
 
 		rand_l+=($RAND)		# append generated number
+    test "$debug" && arr_d
 	done
 
 
 	# Choosing the word
 
- 	rand $(( ${#rand_l[@]} - 1 )) 		
+ 	rand $(( ${#rand_l[@]} - 1 )) # RAND is returned 
 	word=`sed -n "${rand_l[$RAND]} s/\(.*\S\) \s.*/\1/p" $dict`		# get the word
 
 	TRUE=$((RAND + 1))				# correct index for the answer; will be +1 on select prompt
 }
 
 
+#
 # Display questions
 #
+# Steps:
+#
+# 1. First populate rand_l[] with RAND_LINE_MAX line numbers
 # 	questions				array to hold a word in question
 # 	translations		array to
 #		rand_l					array with generated random lines
@@ -164,8 +159,8 @@ function play() {
   # RAND_LINE_MAX is the number of the lines to be examined/offered by
   # the translation query                                 	
 
-  # set it to the maximum line numbers in the file if less than 4 (default of RAND_LINE_MAX) fi
-  [ $FLEN -lt $RAND_LINE_MAX ] && RAND_LINE_MAX=$FLEN			
+  # adjust RAND_LINE_MAX to not go beyond the last line in a file (RAND_LINE_MAX = 4) 
+  $FLEN -lt $RAND_LINE_MAX  && RAND_LINE_MAX=$FLEN			
 
 	# DEBUG
 	#echo "in play(): "
@@ -176,6 +171,7 @@ function play() {
 	# clear the screen 
 	clear_screen
 
+  # GAMES was finally set when -x was passed; default is GAMES_DEF
 	for((i=0; $i < $GAMES; i++))
 	do
 		quest

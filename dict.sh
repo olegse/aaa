@@ -29,20 +29,20 @@ while [ "$1" ]; do
 	
 		-x*)
          option=-x
-         games_count=${1##$option}  # -oARG
-         if [ -z "$games_count" ]   # -o [ARG]
+         GAMES=${1##$option}  # -oARG
+         if [ -z "$GAMES" ]   # -o [ARG]
          then
            if [[ -z "$2" || $2 =~ ^- ]] # -o ''
            then
-					   games_count=$GAMES_DEF   # 4
+					   GAMES=$GAMES_DEF   # 4
            else
-             games_count=$2         # -o ARG
+             GAMES=$2         # -o ARG
              shift    # shift option argument
            fi
          fi
-         if ! [ $games_count =~ ^[[:digit:]]*$ ]
+         if ! [ $GAMES =~ ^[[:digit:]]*$ ]
          then
-           echo "'$games_count' requires numeric value" 1>&2
+           echo "'$GAMES' requires numeric value" 1>&2
          fi
 			;;
 	
