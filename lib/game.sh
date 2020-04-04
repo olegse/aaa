@@ -37,16 +37,10 @@ function rand(){
   MAX_LINE=$1      # the highest line number in a file (for readability changed to MAX_LINE)
   MIN_LINE=${2:-1} # the lowest line number in a file (default 1 if not passed)
 
-  # DEBUG
-  echo "[DEBUG] in rand()"
-  echo "[DEBUG] LIMIT: $LIMIT"
-  echo "[DEBUG] MIN_LINE: $MIN_LINE"
-  echo "[DEBUG] MAX_LINE: $MAX_LINE"
-
   while [ 1 ]; do
-    RAND=$(( RANDOM % (10**LIMIT) ))
-    #echo "RAND: $RAND"
-    if [ $RAND -ge $MIN_LINE -a $RAND -le $MAX_LINE ]
+    RAND=$(( RANDOM % (10**LIMIT) ))    # chop max digits in a number 222; 3 digits 55333 % 1000 = 333 (3 digits)
+    test $debug && echo "RAND: $RAND"
+    if [ $RAND -ge $MIN_LINE -a $RAND -le $MAX_LINE ]   # confirm range
     then 
       break
     fi
@@ -76,16 +70,9 @@ function rand_line()		# 'r
 		done
 
 		rand_l+=($RAND)		# append generated number
-    test "$debug" && arr_d
+    test "$debug" && arr_d      # print rand_l[] elements if $debug is set
 	done
 
-
-	# Choosing the word
-
- 	rand $(( ${#rand_l[@]} - 1 )) # RAND is returned 
-	word=`sed -n "${rand_l[$RAND]} s/\(.*\S\) \s.*/\1/p" $dict`		# get the word
-
-	TRUE=$((RAND + 1))				# correct index for the answer; will be +1 on select prompt
 }
 
 
@@ -103,25 +90,42 @@ function rand_line()		# 'r
 # Sets $RAND.
 function quest()
 {
-
 	declare -a {questions,translations,rand_l}			# indexed arrays (-a)
-	declare -g rand_line # store random line numbers; global array (-g)
-	
-	rand_line		# generate random line number, set to $RAND
-	for line in ${rand_l[@]}		# 
-	do	
-	
-		IFS=,
+  declare OLDIFS=$IFS   # for translation splitting
 
-		# comment and write out the expression
-		translations=( `sed --silent " $line s/.* \s\+//p " $dict | sed 's/,\s\+/,/g'` )
-		rand $(( ${#translations[@]} - 1 ))
-	
-		# comment
+	rand_line		# generate random line number, set to $RAND
+
+  #
+	# Choosing the word
+  #
+
+  # Generate RAND_MAX possible answers, one from each line
+	IFS=,
+	for line in ${rand_l[@]}
+	do	
+		# Retrieve only translations part
+    #sed -n "$line p" $DICT_FILE | sed 's/,\s\+/,/g' | awk '{print $2}'
+		translations=( $(sed -n "$line p" $DICT_FILE | sed 's/,\s\+/,/g' | awk '{print $2}' ) )
+    # Generate random index in translations[]; index starts from 0
+		rand $(( ${#translations[@]} - 1 )) 0
+		# Store possible answer in questions[]
 		questions+=( ${translations[$RAND]} )
-	
 	done
-	
+
+
+  # Generate random index for the line user will be questioned.
+ 	rand $(( ${#rand_l[@]} - 1 )) # index in rand_l[] (returned in RAND)
+  # random line number
+  line=${rand_l[$RAND]}   
+  
+  # Correct word (answer)
+  word=$( awk 'NR=='"$line"' {print $1}' $DICT_FILE )
+
+  # correct index for the answer; will be +1 on select prompt
+	TRUE=$((RAND + 1))				
+
+	# Display quest prompt. REPLY is compared with TRUE that is the index
+  # of the correct line. Questioned words are stored under the same indexes.
 	PS3="Choose translation for the '$word':   "
 	select answer in ${questions[@]}
 	do
@@ -139,6 +143,7 @@ function quest()
 		break
 	done
 	clear_screen
+  IFS=$OLDIFS
 }
 
 

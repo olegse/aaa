@@ -1,5 +1,7 @@
 #!/bin/bash
 
+WORK_DIR=~/dict
+cd $WORK_DIR
 source init.sh
 
 function usage() {
@@ -28,11 +30,10 @@ while [ "$1" ]; do
 			;;
 	
 		-x*)
-         option=-x
-         GAMES=${1##$option}  # -oARG
+         GAMES=${1##${1:0:2}}  #  remove first -x; case of -oARG
          if [ -z "$GAMES" ]   # -o [ARG]
          then
-           if [[ -z "$2" || $2 =~ ^- ]] # -o ''
+           if [[ -z "$2" || $2 =~ ^- ]] # case of single -x
            then
 					   GAMES=$GAMES_DEF   # 4
            else
@@ -44,6 +45,8 @@ while [ "$1" ]; do
          then
            echo "'$GAMES' requires numeric value" 1>&2
          fi
+        
+        option=${1:0:2}   # -x
 			;;
 	
     # Set or display dictionary file

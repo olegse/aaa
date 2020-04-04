@@ -1,4 +1,9 @@
 
+ TODO:
+   - rewrite rand $FLEN 1 to return the value and work with $RAND
+   - fix MAX_LINE and MIN_LINE to be MIN_LIM for example, as far also 
+     indexes in the array are generated with rand(), so "line" here is misleading
+
  All the functions are sourced with init.sh, that dives into lib directory to call lib.sh that in turn will source 
  all the files located in lib. init.sh execution will end up in the base dict directory to keep consequent calls related
  to the base directory.
@@ -13,22 +18,46 @@
 	vt100.sh
 
  	get_arg()
-
-
-
- Game
-
  Game mode is triggered with the -x option optionally accepting a number of the games to be played.
 
  DICT_FILE tracks full path to the dictionary file in use.
  
- Find file length. flen()
-	play() 
+ play()
 	 cursor is set to off (create a function)
+   Find file length (with flen())
+	 RAND_LINE_MAX # 4 <= FLEN
  
-	 GAME_MAX		# 4
-	 RAND_LINE_MAX # 4
+ quest() ->
 
+  rand_line() 
+
+    i local
+    Generate $RAND_LINE_MAX numbers in range of 
+      rand()
+        LIMIT amount of digits within number 2 in 11, 2 cut from 55555
+        in range of FLEN 
+
+     MIN_LINE >= i <= MAX_LINE
+
+   and store them in rand_l[] if not already stored (dup()).
+   Using rand() again to choose random index within rand_l[] to agree on the line that will be asked
+   for. From there need to retrieve a word with IFS=,
+
+   Store the correct index in TRUE, that is RAND+1, as <select> issued from 1.
+
+   Process each line stored in rand_l[] 
+   Convert ', ' to ',' , retrieve only translation part. Now thanks to IFS we have array of elements separated by ','
+
+  Now questions[] is 4 words and the correct one is RAND+1==TRUE==REPLY
+   
+	 GAME_MAX		# 4
+
+  arrays.sh - useful functions
+
+    dup()     test for duplicated value within array
+ 
+ 
+  
 # 
 # Learning program.
 #
