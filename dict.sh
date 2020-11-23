@@ -30,6 +30,7 @@ while [ "$1" ]; do
 			;;
 	
 		-x*)
+         option=${1:0:2}   # -x
          GAMES=${1##${1:0:2}}  #  remove first -x; case of -oARG
          if [ -z "$GAMES" ]   # -o [ARG]
          then
@@ -40,13 +41,14 @@ while [ "$1" ]; do
              GAMES=$2         # -o ARG
              shift    # shift option argument
            fi
+           echo "GAMES: $GAMES"
          fi
-         if ! [ $GAMES =~ ^[[:digit:]]*$ ]
+         if ! [[ $GAMES =~ ^[[:digit:]]*$ ]]
          then
            echo "'$GAMES' requires numeric value" 1>&2
+           exit
          fi
         
-        option=${1:0:2}   # -x
 			;;
 	
     # Set or display dictionary file
@@ -75,10 +77,9 @@ while [ "$1" ]; do
 				echo "Try \``basename $0 .sh` --help' for more information." >&2
 		 ;;
 	
-		*)	word="$1"		# word catched, translation string follows
-		
+		*)	#echo "word found"
+        word="$1"		# word catched, translation string follows
 		 ;;	
-
 	esac
 
 	shift   # be ready to process next element
@@ -110,14 +111,18 @@ case "$option" in
   ;;
 
   -x) # Quest mode. We allow to change dictionary file before.
+      echo "Entering to play()"
 	    play
   ;;
 
   *)  # Display or store word translation
 		if [ -z "$*" ] # no translations passed; display all the words starting from ^word
 		then
-			grep "^$word" $DICT_FILE
-		
+			if ! grep "^$word" $DICT_FILE
+      then
+        echo "Translation for the '$word' was not found. Use"
+        echo "'$word' following by it's translation to add."
+		  fi
 		else
 
 		  # Continue to store translations...

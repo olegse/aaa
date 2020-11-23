@@ -6,7 +6,7 @@ shopt -s extglob
 
 ### Variables ###
 DIR=$HOME/dict		      # working directory
-DICT_FILE_NAME=en
+DICT_FILE_NAME=cz
 
 LIBRARY=$DIR/library		# dictionaries stored here
 DICT_FILE=$LIBRARY/$DICT_FILE_NAME # full path to the dictionary file

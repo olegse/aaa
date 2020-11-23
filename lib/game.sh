@@ -12,6 +12,8 @@
 #  flen <FILE>
 #
 
+## !!! тема для обсуждения - только "тема" была поймана
+
 
 # Set FLEN variable to the line count within file.
 function flen(){			# 'b
@@ -130,16 +132,23 @@ function quest()
 	select answer in ${questions[@]}
 	do
 		clear_screen 				
+
 		echo -en "\033[1m"		# bold
 
 		if [ $REPLY -eq $TRUE ]
 		then
 			echo -en "\033[42m           CORRECT           "	# colors 
+      echo -e "\033[0m"     # clear colors
+      sleep 0.7
 		else
 			echo -en "\033[41m            WRONG            "	# colors
+      sleep 0.7
+      echo -e "\033[0m"     # clear colors
+      clear_screen
+      echo "Write answer is '${questions[$((TRUE-1))]}' ($TRUE)"
+      sleep 1.5
 		fi
-		sleep 0.7
-		echo -e "\033[0m"
+    # Wow! Here highlight the exact entry
 		break
 	done
 	clear_screen
