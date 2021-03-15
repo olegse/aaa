@@ -3,6 +3,17 @@
 WORK_DIR=~/dict
 cd $WORK_DIR
 source init.sh
+# At this point we source libraries in ./lib/
+# Following variables are available 
+#  DIR=$HOME/dict		      # working directory
+#  DICT_FILE_NAME=cz       # dictionary filename
+#  LIBRARY=$DIR/library		# dictionaries stored here
+#  DICT_FILE=$LIBRARY/$DICT_FILE_NAME # full path to the dictionary file
+#  TMP=$DIR/tmp						# temporary file for sorting
+#  INDENT=30								# default identation
+#  GAMES_DEF=4             # games count (default=4)
+#  RAND_LINE_MAX=4					# number of lines to offer in each game question (default=4)
+#  LIB=$DIR/lib/lib.sh			# definitions file (this file)
 
 function usage() {
 	echo "Usage: `basename $0 .sh` WORD [TRANSLATION]..."
@@ -51,15 +62,15 @@ while [ "$1" ]; do
         
 			;;
 	
-    # Set or display dictionary file
+    # Set or if no arguments were given display dictionary file
 		-d*)
         
         rewrite_dictionary_file=1
         option=-d
         if [ -z "${1##$option}" ] # -o ARG or -o ''
         then # argument is not part of the option
-          if [[ -z "$2" || $2 =~ ^- ]] # and is not following the option
-          then 
+          if [[ -z "$2" || $2 =~ ^- ]] # and following is an option or nothing
+          then                         #+ meaning argument is not present
 					  # Only print current dictionary file used
 	          # file_used   - report dictionary file
 					  echo "Dictionary file in use:  $DICT_FILE_NAME"
